@@ -1,8 +1,8 @@
 {
   "canisters": {
-    "isla_estadisticas_backend": {
-      "main": "src/isla_estadisticas_backend/main.mo",
-      "type": "motoko"
+    "frontend": {
+      "source": ["src/frontend_react"],
+      "type": "assets"
     }
   },
   "defaults": {
