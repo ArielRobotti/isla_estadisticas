@@ -5,22 +5,20 @@ const NavBar: React.FC = () => {
   return (
     <header className="text-center py-[40px] px-[20px] pb-[16px]">
       <div className="flex items-center justify-center gap-[16px] mb-[6px]">
-        {/* <div className="hex">⚡</div> */}
-        <div className="flex font-rajdhani text-7xl ">
-          C
-
+        <a href="https://c3ntral.gg/">
+          <div className="flex font-rajdhani text-7xl ">
+            C
             <img
               src={logoGif}
               alt="e"
               className=" h-18 w-18 logo-gif"
             />
-
-          NTRAL.GG
+            NTRAL.GG
         </div>
-        {/* <div className="hex">⚡</div> */}
+        </a>
       </div>
       <div className="text-[0.9rem] text-[#c8d8f073] tracking-[6px] uppercase mt-[4px] font-rajdhani">
-        Fortnite Ecosystem · Data API
+        Fortnite Ecosystem · Island statistics
       </div>
     </header>
   );

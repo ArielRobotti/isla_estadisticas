@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import NavBar from './components/NavBar';
 import ControlPanel from './components/ControlPanel';
 import IslandHeader from './components/IslandHeader';
@@ -10,21 +11,38 @@ import {
   fmt, sumArr, avgArr, maxArr, lastD, extract
 } from './utils/formatters';
 
+// const getInitialDates = () => {
+//   const now = new Date();
+//   const minus7 = new Date();
+//   minus7.setDate(now.getDate() - 7);
+//   return {
+//     to: now.toISOString().slice(0, 10),
+//     timeTo: now.toTimeString().slice(0, 5),
+//     from: minus7.toISOString().slice(0, 10),
+//     timeFrom: '00:00'
+//   };
+// };
+
 const getInitialDates = () => {
   const now = new Date();
-  const minus7 = new Date();
-  minus7.setDate(now.getDate() - 7);
+  
+  // Creamos la fecha "desde" basada en el tiempo UTC actual
+  // Restamos 7 días pero asegurándonos de no pasarnos del límite de Epic
+  const fromDate = new Date(now.getTime());
+  fromDate.getUTCDate(); // Forzamos contexto UTC
+  fromDate.setUTCDate(now.getUTCDate() - 7);
+
+
   return {
-    to: now.toISOString().slice(0, 10),
+    to: now.toLocaleDateString('en-CA'), // "2026-04-07" (Local para el input)
     timeTo: now.toTimeString().slice(0, 5),
-    from: minus7.toISOString().slice(0, 10),
-    timeFrom: '00:00'
+    from: fromDate.toISOString().slice(0, 10), // "2026-04-01" (UTC para el límite)
+    timeFrom: '00:01' // Margen de seguridad
   };
 };
 
-
 const App: React.FC = () => {
-  const MY_DEFAULT_ISLAND = '5795-7018-7160';
+  const MY_DEFAULT_ISLAND = '5795-7018-7160'; //5850-4984-2482
   
   const params = new URLSearchParams(window.location.search);
   const islandCode = (params.get('id') ? params.get('id') : MY_DEFAULT_ISLAND) as string;
@@ -37,20 +55,8 @@ const App: React.FC = () => {
   const [timeFrom, setTimeFrom] = useState(init.timeFrom);
   const [dateTo, setDateTo] = useState(init.to);
   const [timeTo, setTimeTo] = useState(init.timeTo);
-  
+
   const { data, islandMetadata, loading, error, fetchAnalytics } = useIslandAnalytics();
-  console.log(islandMetadata)
-
-  useEffect(() => {
-    const now = new Date();
-    const minus7 = new Date();
-    minus7.setDate(now.getDate() - 7);
-
-    setDateTo(now.toISOString().slice(0, 10));
-    setTimeTo(now.toTimeString().slice(0, 5));
-    setDateFrom(minus7.toISOString().slice(0, 10));
-    setTimeFrom('00:00');
-  }, []);
 
   const toISO = (dateStr: string, timeStr: string) => {
     if (!dateStr) return '';
@@ -58,20 +64,27 @@ const App: React.FC = () => {
     return `${dateStr}T${t.length === 5 ? t + ':00.000Z' : t}`;
   };
 
-  useEffect(() => {
-    if (islandCode) {
-      handleFetch();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode]);
 
-  const handleFetch = () => {
-    if (!islandCode) return;
+  const handleFetch = useCallback(() => {
+    if (!islandCode || !dateFrom || !dateTo) return;
 
     const fromStr = toISO(dateFrom, timeFrom);
     const toStr = toISO(dateTo, timeTo);
+    
+    console.log("Iniciando Fetch:", { mode, fromStr, toStr });
     fetchAnalytics(islandCode, mode, fromStr, toStr);
-  };
+  }, [islandCode, mode, dateFrom, dateTo, timeFrom, timeTo, fetchAnalytics]);
+
+
+  useEffect(() => {
+    if (islandCode && dateFrom && dateTo) {
+      const fromStr = toISO(dateFrom, timeFrom);
+      const toStr = toISO(dateTo, timeTo);
+      
+      fetchAnalytics(islandCode, mode, fromStr, toStr);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [islandCode, mode, dateFrom, dateTo, timeFrom, timeTo]);
 
   const buildUrlPreview = () => {
     if (!islandCode) return '—';
@@ -146,14 +159,6 @@ const App: React.FC = () => {
             islandCode={islandCode}
           />
         </>
-      )}
-
-      {!data && !loading && (
-        <section className="text-center py-20 px-5 text-[#c8d8f029]">
-          <div className="text-[72px] mb-4.5 opacity-[0.22]">🏝️</div>
-          <h2 className="font-orbitron text-base tracking-[4px] mb-2">Introduce un código de isla</h2>
-          <p className="text-[0.85rem] tracking-wide">Ingresa el código de tu isla para ver las métricas en tiempo real</p>
-        </section>
       )}
     </div>
   );
