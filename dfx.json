@@ -1,14 +1,36 @@
 {
   "canisters": {
     "frontend": {
-      "source": ["src/frontend_react/dist"],
+      "source": [
+        "src/frontend_react/dist"
+      ],
       "type": "assets"
+    },
+    "minter": {
+      "main": "src/backend/minter.mo",
+      "type": "motoko",
+      "declarations": {
+        "output": "src/frontend_react/declarations/minter"
+      },
+      "specified_id": "l4zq2-cqaaa-aaaap-qumea-cai"
+    },
+    "icrc2_ledger": {
+      "type": "custom",
+      "candid": "https://github.com/dfinity/ic/releases/download/ledger-suite-icrc-2026-03-09/ledger.did",
+      "wasm": "https://github.com/dfinity/ic/releases/download/ledger-suite-icrc-2026-03-09/ic-icrc1-ledger.wasm.gz",
+      "specified_id": "ls35s-zaaaa-aaaap-qumfa-cai"
+    },
+    "icrc2_index": {
+      "type": "custom",
+      "candid": "https://github.com/dfinity/ic/releases/download/ledger-suite-icrc-2026-03-09/index-ng.did",
+      "wasm": "https://github.com/dfinity/ic/releases/download/ledger-suite-icrc-2026-03-09/ic-icrc1-index-ng.wasm.gz",
+      "init_arg": "opt variant {Init = record {ledger_id = principal \"icrc2_ledger\"; retrieve_blocks_from_ledger_interval_seconds = opt 60}}"
     }
   },
   "defaults": {
     "build": {
       "args": "",
-      "packtool": ""
+      "packtool": "mops sources"
     }
   },
   "output_env_file": ".env",

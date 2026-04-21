@@ -1,5 +1,11 @@
 {
+  "minter": {
+    "ic": "l4zq2-cqaaa-aaaap-qumea-cai"
+  },
   "frontend": {
     "ic": "2r3gj-5aaaa-aaaap-qt3pa-cai"
+  },
+  "icrc2_ledger": {
+    "ic": "ls35s-zaaaa-aaaap-qumfa-cai"
   }
 }
