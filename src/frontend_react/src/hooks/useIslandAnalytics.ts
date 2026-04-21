@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from 'react';
-// import { type IslandData } from '../types/metrics';
 
 export const useIslandAnalytics = () => {
   const [data, setData] = useState<any>(null); // Métricas

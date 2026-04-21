@@ -1,7 +1,7 @@
 {
   "canisters": {
     "frontend": {
-      "source": ["src/frontend_react"],
+      "source": ["src/frontend_react/dist"],
       "type": "assets"
     }
   },
