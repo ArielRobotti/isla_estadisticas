@@ -18,7 +18,7 @@ const KpiGrid: React.FC<KpiGridProps> = ({
   totalUnique, totalPlays, totalMins, avgMin, maxCcu, totalFavs, totalRecs
 }) => {
   return (
-    <section className="grid grid-cols-[repeat(auto-fit,minmax(148px,1fr))] gap-3 mt-5">
+    <section className="wrap grid grid-cols-[repeat(auto-fit,minmax(148px,1fr))] gap-3 mt-5">
       <StatCard value={fmt(totalUnique)} label="Jugadores Únicos" icon="👥" note="Total período" colorClass="c-blue" />
       <StatCard value={fmt(totalPlays)} label="Partidas Jugadas" icon="🎮" note="Total período" colorClass="c-gold" />
       <StatCard value={fmt(totalMins) + 'm'} label="Minutos Jugados" icon="🕐" note="Total período" colorClass="c-green" />

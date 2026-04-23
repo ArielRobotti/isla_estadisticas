@@ -1,11 +1,11 @@
 #!/bin/bash
 dfx start --background
 dfx identity use MOPS
-dfx deploy icrc2_ledger  --argument '(
+dfx deploy icrc2_ledger --argument '(
   variant {
     Init = record {
       decimals = opt (8 : nat8);
-      token_symbol = "NXST";
+      token_symbol = "NXT";
       transfer_fee = 1_000_000 : nat;
       metadata = vec {
         record {
@@ -35,8 +35,27 @@ dfx deploy icrc2_ledger  --argument '(
       };
       max_memo_length = opt (80 : nat16);
       index_principal = null;
-      token_name = "Nexux Token";
+      token_name = "Nexus Token";
       feature_flags = opt record { icrc2 = true };
     }
   }
 )'
+# dfx deploy icrc2_ledger --argument '(
+# variant {
+#     Upgrade = record {
+#       token_symbol = opt "NXT";
+#       token_name = opt "Nexus Token";
+#     }
+#   }
+# )'
+
+
+# hange_archive_options : ?ChangeArchiveOptions;
+# token_symbol : ?Text;
+# transfer_fee : ?Nat;
+# metadata : ?[(Text, MetadataValue)];
+# change_fee_collector : ?ChangeFeeCollector;
+# max_memo_length : ?Nat16;
+# index_principal : ?Principal;
+# token_name : ?Text;
+# feature_flags : ?FeatureFlags;

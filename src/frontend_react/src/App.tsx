@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
 import NavBar from './components/NavBar';
+import RedeemCoupon from './components/RedeemCoupon';
 import ControlPanel from './components/ControlPanel';
 import IslandHeader from './components/IslandHeader';
 import KpiGrid from './components/KpiGrid';
@@ -104,8 +105,9 @@ const App: React.FC = () => {
   const d7 = lastD(data?.retention, 'd7');
 
   return (
-    <div className="wrap font-rajdhani">
+    <div className="w-full font-rajdhani">
       <NavBar />
+      <RedeemCoupon />
 
       <ControlPanel
         mode={mode} setMode={setMode}
@@ -118,7 +120,7 @@ const App: React.FC = () => {
         urlPreview={buildUrlPreview()}
       />
 
-      <div className={`text-center mt-3.5 min-h-6 text-[0.88rem] ${error ? 'text-[#FF6B6B]' : loading ? 'text-blue-neon animate-pulse' : 'text-[#4ECDC4]'}`}>
+      <div className={`mx-20 text-center mt-3.5 min-h-6 text-[0.88rem] ${error ? 'text-[#FF6B6B]' : loading ? 'text-blue-neon animate-pulse' : 'text-[#4ECDC4]'}`}>
         {loading ? '⟳ Consultando API...' : error ? `✗ ${error}` : data ? `✓ Datos cargados · ${new Date().toLocaleTimeString('es-AR')}` : ''}
       </div>
 

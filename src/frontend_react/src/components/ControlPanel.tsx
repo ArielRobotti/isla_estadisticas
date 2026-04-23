@@ -85,7 +85,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   };
 
   return (
-    <section className="bg-card border border-border rounded-2xl p-6 mt-7 flex flex-col gap-6">
+    <section className="bg-card border border-border wrap rounded-2xl p-6 flex flex-col gap-6">
       <div className="flex flex-wrap items-end gap-10">
 
         {/* GRUPO 1: RANGO TEMPORAL (Color Ámbar - "Caliente") */}

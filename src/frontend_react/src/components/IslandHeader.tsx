@@ -15,7 +15,7 @@ const IslandHeader: React.FC<IslandHeaderProps> = ({
   islandCode, metadata, mode, dateFrom, dateTo, maxCcu, fmt
 }) => {
   return (
-    <section className="island-hdr grid grid-cols-[auto_1fr_auto] gap-6 items-center bg-card border border-border rounded-2xl p-[26px] mt-6 relative overflow-hidden">
+    <section className="wrap island-hdr grid grid-cols-[auto_1fr_auto] gap-6 items-center bg-card border border-border rounded-2xl p-[26px] mt-6 relative overflow-hidden">
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-blue-neon via-gold via-blue-neon to-transparent"></div>
       <div className="w-[110px] h-[80px] rounded-xl bg-gradient-to-br from-[#0A1628] to-[#0F2040] border-2 border-[rgba(0,212,255,0.3)] flex items-center justify-center text-[36px]">🗺️</div>
       <div>

@@ -1,6 +1,7 @@
 import ICRC2 "./interfaces/icrc2";
+import User "./modules/user";
 import Map "mo:map/Map";
-import {phash; ihash; n64hash } "mo:map/Map";
+import {n64hash } "mo:map/Map";
 import Types "types";
 import Principal "mo:core/Principal";
 import { now } "mo:core/Time";
@@ -10,12 +11,13 @@ import Nat "mo:core/Nat";
 import Random "mo:core/Random";
 import Iter "mo:core/Iter";
 
-persistent actor This = {
+shared ({caller = DEPLOYER }) persistent actor class() = This {
   
  //-------------------------- Tipos ---- ----------------------------------//
 
   type Account = ICRC2.Account;
   type Coupon = Types.Coupon;
+  public type User = User.User;
 
  //-------------------------- Constantes ----------------------------------//
 
@@ -30,6 +32,7 @@ persistent actor This = {
 
   let availableCoupons = Map.new<Nat64, Coupon>();
   let claimedCoupons = Map.new<Nat64, Coupon>();
+  let userDB = User.initState(DEPLOYER);
  //------------------------------------------------------------------------//
 
   func mintNXST(amount: Nat, to: Account): async ICRC2.Result_2 {
@@ -43,12 +46,12 @@ persistent actor This = {
     })
   };
 
-  func getUserSubacount(p: Principal) : Blob {
+  func _getUserSubaccount(p: Principal) : Blob {
     Principal.toLedgerAccount(p, null)
   };
 
   func getUserAccount(p: Principal): Account {
-    {owner = Principal.fromActor(This); subaccount = ?getUserSubacount(p)}
+    {owner = Principal.fromActor(This); subaccount = ?_getUserSubaccount(p)}
   };
 
   func checkWithdraw(_user: Principal, _amount: Nat): {#Ok; #Err: Text} {
@@ -96,25 +99,37 @@ persistent actor This = {
     await NXST_ledger.icrc1_transfer(transferArg);
   };
 
-  public shared ({ caller }) func getCouponsInfo(): async [Coupon] {
+  public shared query ({ caller }) func getUserSubaccount(u: Principal): async Blob {
+    assert (Principal.isController(caller));
+    _getUserSubaccount(u)
+  };
+
+  public shared query ({ caller }) func getCouponsInfo(): async [Coupon] {
     assert (Principal.isController(caller));
     Iter.toArray(Map.vals(availableCoupons))
   };
   
  // -------------------------- User Functions ----------------------------//
 
+  public shared ({ caller }) func login(): async ?User {
+    User.login(userDB, caller)
+  };
+
   public shared composite query ({ caller }) func balance(): async Nat{
     let account: Account = {
       owner = Principal.fromActor(This);
-      subaccount = ?getUserSubacount(caller)
+      subaccount = ?_getUserSubaccount(caller)
     };
     await NXST_ledger.icrc1_balance_of(account)
   };
 
   public shared ({ caller }) func redeem_coupon(couponId: Nat64) : async {#Ok; #Err: Text} {
+    if (Principal.isAnonymous(caller)){
+      return #Err("Anonymous caller")
+    };
     let to: Account = {
       owner = Principal.fromActor(This);
-      subaccount = ?getUserSubacount(caller)
+      subaccount = ?_getUserSubaccount(caller)
     };
     let coupon = switch (Map.remove(availableCoupons, n64hash, couponId)){
       case null return #Err("Coupon code invalid");
@@ -157,7 +172,7 @@ persistent actor This = {
           amount : Nat;
           created_at_time = null;
           fee = null;
-          from_subaccount = ?getUserSubacount(caller);
+          from_subaccount = ?_getUserSubaccount(caller);
           memo = generateMemo();
           to = {owner = to; subaccount}
         };
@@ -174,7 +189,7 @@ persistent actor This = {
   };
 
   public shared ({ caller }) func getSubaccount(): async Blob {
-    getUserSubacount(caller)
+    _getUserSubaccount(caller)
   };
 
   public shared ({ caller }) func sendNXST({to: Principal; amount: Nat}): async ICRC2.Result_2 {
@@ -182,7 +197,7 @@ persistent actor This = {
       amount : Nat;
       created_at_time = null;
       fee = null;
-      from_subaccount = ?getUserSubacount(caller);
+      from_subaccount = ?_getUserSubaccount(caller);
       memo = generateMemo();
       to = getUserAccount(to)
     };

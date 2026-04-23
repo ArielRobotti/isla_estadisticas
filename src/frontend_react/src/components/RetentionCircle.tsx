@@ -19,6 +19,7 @@ const RetentionCircle: React.FC<RetentionCircleProps> = ({ label, subLabel, valu
       const timer = setTimeout(() => setOffset(targetOffset), 120);
       return () => clearTimeout(timer);
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOffset(CIRC);
     }
   }, [value]);

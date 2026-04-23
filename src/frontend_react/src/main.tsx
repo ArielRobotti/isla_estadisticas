@@ -1,10 +1,20 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import "@/index.css"; import React from 'react';
+import "@nfid/identitykit/react/styles.css";
+import { createRoot } from 'react-dom/client';
+import { IdentityKitProvider } from "@nfid/identitykit/react";
+import App from '@/App';
+import { identityKitConfig } from "@/identity/config";
+import { SessionProvider } from "@/context/SessionContext";
+import { BrowserRouter } from "react-router"
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+  <React.StrictMode>
+    <IdentityKitProvider {...identityKitConfig}>
+      <SessionProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </SessionProvider>
+    </IdentityKitProvider>
+  </React.StrictMode>
+);

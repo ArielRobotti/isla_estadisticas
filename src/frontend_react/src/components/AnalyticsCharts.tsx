@@ -85,7 +85,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({
   const chartKey = `${islandCode}-${mode}-${upData.values.length}-${plData.values.length}`;
 
   return (
-    <section className="charts" key={chartKey}>
+    <section className="charts wrap" key={chartKey}>
       <ChartCard title="Jugadores Únicos" subtitle="Jugadores distintos por período" dotColor="blue" isFull isTall noData={upData.values.length === 0} noDataIcon="👥">
         <Line 
           redraw={true}
