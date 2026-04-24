@@ -14,6 +14,15 @@ module {
 		extraData : Shared.MetadataArray;
 	};
 
+	public type UserEditableData= {
+		name : Text;
+		email: Text;
+		fortniteUserName : Text;
+		fortniteID : Text;
+		extraData : Shared.MetadataArray;
+	};
+
+
 	public type UserDB = {
 		users : Map.Map<Principal, User>;
 		admins : [User];

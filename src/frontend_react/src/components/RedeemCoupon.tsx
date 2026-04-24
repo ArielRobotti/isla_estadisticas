@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 // import { useBackend } from "@/hooks/useBackend";
 import { useSession } from "../context/SessionContext";
 
-const RedeemCoupon: React.FC = () => {
-	
+const RedeemCoupon = ({claimCode} : {claimCode: string}) => {
 	const { redeemCoupon  } = useSession();
-	const [coupon, setCoupon] = useState("");
+	const [coupon, setCoupon] = useState<string>(claimCode);
 	const [palceholder, setPlaceholder] = useState("EJ: 12345678901234567890")
 	const [claming, setClaming] = useState(false);
 

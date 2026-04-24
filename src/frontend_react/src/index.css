@@ -427,5 +427,32 @@ input[type="time"]::-webkit-calendar-picker-indicator:hover {
     }
   }
 }
+/* --- 1. SCROLLBAR GLOBAL (Para toda la web) --- */
+/* Funciona en Chrome, Edge, Safari y Brave */
+
+/* Tamaño del scrollbar */
+::-webkit-scrollbar {
+  width: 10px;               /* Ancho para scroll vertical */
+  height: 10px;              /* Alto para scroll horizontal */
+}
+
+/* El fondo del scrollbar (Track) */
+::-webkit-scrollbar-track {
+  background: #09090b;       /* Zinc-950 (igual que el fondo del calendario) */
+}
+
+/* La barrita que se mueve (Thumb) */
+::-webkit-scrollbar-thumb {
+  /* padding-top: 10px; */
+  background: #6065ad96;       /* Zinc-800 */
+  border-radius: 10px;       /* Bordes redondeados */
+  border: 2px solid #0b090b; /* Crea un efecto de margen alrededor de la barrita */
+}
+
+/* Color al pasar el mouse por la barrita */
+::-webkit-scrollbar-thumb:hover {
+  background: #777edb96;       /* Zinc-600 */
+}
+
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap');

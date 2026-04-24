@@ -111,8 +111,20 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
   
  // -------------------------- User Functions ----------------------------//
 
-  public shared ({ caller }) func login(): async ?User {
+  public shared ({ caller }) func signUp(name: Text): async {#Ok: User; #Err: Text}{
+    User.signUp(userDB, caller, name)
+  };
+
+  public shared query ({ caller }) func login(): async ?User {
     User.login(userDB, caller)
+  };
+
+  public shared ({ caller }) func editProfile(data: User.UserEditableData): async {#Ok: User; #Err: Text}{
+    User.editProfile(userDB, caller, data)
+  };
+
+  public shared ({ caller }) func loadAvatar(avatar: ?Blob): async {#Ok: User; #Err: Text}{
+    User.loadAvatar(userDB, caller, avatar);
   };
 
   public shared composite query ({ caller }) func balance(): async Nat{
@@ -158,7 +170,7 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
     }
   };
 
-  public shared ({ caller }) func withdraw({amount: Nat; to: Principal; subaccount: ?Blob}): async {#Ok: Nat; #Err: Text}{
+  public shared ({ caller }) func withdraw({amount: Nat; to: Text; subaccount: ?Blob}): async {#Ok: Nat; #Err: Text}{
     switch (checkWithdraw(caller, amount)) {
       case (#Err(e)) return #Err(e);
       case _ {
@@ -174,7 +186,7 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
           fee = null;
           from_subaccount = ?_getUserSubaccount(caller);
           memo = generateMemo();
-          to = {owner = to; subaccount}
+          to = {owner = Principal.fromText(to); subaccount}
         };
         let trasferResult = await NXST_ledger.icrc1_transfer(transferArg);
         switch trasferResult {
@@ -192,18 +204,22 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
     _getUserSubaccount(caller)
   };
 
-  public shared ({ caller }) func sendNXST({to: Principal; amount: Nat}): async ICRC2.Result_2 {
+  public query func getUserName(p: Text): async {#Ok: Text; #Err} {
+    User.getUserName(userDB, Principal.fromText(p))
+  };
+
+  public shared ({ caller }) func sendNXST({to: Text; amount: Nat}): async ICRC2.Result_2 {
     let transferArg: ICRC2.TransferArg = {
       amount : Nat;
       created_at_time = null;
       fee = null;
       from_subaccount = ?_getUserSubaccount(caller);
       memo = generateMemo();
-      to = getUserAccount(to)
+      to = getUserAccount(Principal.fromText(to))
     };
     await NXST_ledger.icrc1_transfer(transferArg)
   };
-  
+
   
   
 };

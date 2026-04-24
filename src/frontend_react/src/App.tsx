@@ -1,6 +1,8 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
+import { Routes, Route, Navigate } from "react-router";
+import Profile from './pages/Profile';
+import WalletPage from './pages/WalletPage';
 import NavBar from './components/NavBar';
 import RedeemCoupon from './components/RedeemCoupon';
 import ControlPanel from './components/ControlPanel';
@@ -11,6 +13,7 @@ import { useIslandAnalytics } from './hooks/useIslandAnalytics';
 import {
   fmt, sumArr, avgArr, maxArr, lastD, extract
 } from './utils/formatters';
+import { Toaster } from 'sonner';
 
 // const getInitialDates = () => {
 //   const now = new Date();
@@ -47,6 +50,7 @@ const App: React.FC = () => {
   
   const params = new URLSearchParams(window.location.search);
   const islandCode = (params.get('id') ? params.get('id') : MY_DEFAULT_ISLAND) as string;
+  const claimCode = (params.get('claim') ? params.get('claim') : "") as string;
   
   
   const [mode, setMode] = useState<'day' | 'hour' | 'minute'>('day');
@@ -106,62 +110,76 @@ const App: React.FC = () => {
 
   return (
     <div className="w-full font-rajdhani">
+      <Toaster position="top-right" richColors />
       <NavBar />
-      <RedeemCoupon />
+      <RedeemCoupon claimCode={claimCode}/>
 
-      <ControlPanel
-        mode={mode} setMode={setMode}
-        dateFrom={dateFrom} setDateFrom={setDateFrom}
-        timeFrom={timeFrom} setTimeFrom={setTimeFrom}
-        dateTo={dateTo} setDateTo={setDateTo}
-        timeTo={timeTo} setTimeTo={setTimeTo}
-        onFetch={handleFetch}
-        loading={loading}
-        urlPreview={buildUrlPreview()}
-      />
+      <Routes>
 
-      <div className={`mx-20 text-center mt-3.5 min-h-6 text-[0.88rem] ${error ? 'text-[#FF6B6B]' : loading ? 'text-blue-neon animate-pulse' : 'text-[#4ECDC4]'}`}>
-        {loading ? '⟳ Consultando API...' : error ? `✗ ${error}` : data ? `✓ Datos cargados · ${new Date().toLocaleTimeString('es-AR')}` : ''}
-      </div>
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/wallet" element={<WalletPage />} />
 
-      {data && (
-        <>
-          <IslandHeader
-            islandCode={islandCode}
-            metadata={islandMetadata}
-            mode={mode}
-            dateFrom={dateFrom}
-            dateTo={dateTo}
-            maxCcu={maxCcu}
-            fmt={fmt}
-          />
+        <Route path="/" element={
+          <>
+            <ControlPanel
+              mode={mode} setMode={setMode}
+              dateFrom={dateFrom} setDateFrom={setDateFrom}
+              timeFrom={timeFrom} setTimeFrom={setTimeFrom}
+              dateTo={dateTo} setDateTo={setDateTo}
+              timeTo={timeTo} setTimeTo={setTimeTo}
+              onFetch={handleFetch}
+              loading={loading}
+              urlPreview={buildUrlPreview()}
+            />
 
-          <KpiGrid
-            totalUnique={totalUnique}
-            totalPlays={totalPlays}
-            totalMins={totalMins}
-            avgMin={avgMin}
-            maxCcu={maxCcu}
-            totalFavs={totalFavs}
-            totalRecs={totalRecs}
-            d1={d1}
-            d7={d7}
-          />
+            <div className={`text-center mt-3.5 min-h-6 text-[0.88rem] ${error ? 'text-[#FF6B6B]' : loading ? 'text-blue-neon animate-pulse' : 'text-[#4ECDC4]'}`}>
+              {loading ? '⟳ Consultando API...' : error ? `✗ ${error}` : data ? `✓ Datos cargados · ${new Date().toLocaleTimeString('es-AR')}` : ''}
+            </div>
 
-          <AnalyticsCharts
-            upData={extract(data?.uniquePlayers as any, mode)}
-            plData={extract(data?.plays as any, mode)}
-            amData={extract(data?.averageMinutesPerPlayer as any, mode)}
-            mpData={extract(data?.minutesPlayed as any, mode)}
-            favData={extract(data?.favorites as any, mode)}
-            recData={extract(data?.recommendations as any, mode)}
-            d1={d1}
-            d7={d7}
-            mode={mode}
-            islandCode={islandCode}
-          />
-        </>
-      )}
+            {data && (
+              <>
+                <IslandHeader
+                  islandCode={islandCode}
+                  metadata={islandMetadata}
+                  mode={mode}
+                  dateFrom={dateFrom}
+                  dateTo={dateTo}
+                  maxCcu={maxCcu}
+                  fmt={fmt}
+                />
+
+                <KpiGrid
+                  totalUnique={totalUnique}
+                  totalPlays={totalPlays}
+                  totalMins={totalMins}
+                  avgMin={avgMin}
+                  maxCcu={maxCcu}
+                  totalFavs={totalFavs}
+                  totalRecs={totalRecs}
+                  d1={d1}
+                  d7={d7}
+                />
+
+                <AnalyticsCharts
+                  upData={extract(data?.uniquePlayers as any, mode)}
+                  plData={extract(data?.plays as any, mode)}
+                  amData={extract(data?.averageMinutesPerPlayer as any, mode)}
+                  mpData={extract(data?.minutesPlayed as any, mode)}
+                  favData={extract(data?.favorites as any, mode)}
+                  recData={extract(data?.recommendations as any, mode)}
+                  d1={d1}
+                  d7={d7}
+                  mode={mode}
+                  islandCode={islandCode}
+                />
+              </>
+            )}
+          </>
+        } />
+
+        {/* REDIRECCIÓN POR DEFECTO */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 };
