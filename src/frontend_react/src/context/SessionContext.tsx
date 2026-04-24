@@ -3,7 +3,6 @@ import { useIdentity, useAuth } from "@nfid/identitykit/react";
 import { useBackend } from "../hooks/useBackend";
 import type { _SERVICE as Minter } from "../../declarations/minter/minter.did";
 import type { User, UserEditableData } from "../../declarations/minter/minter.did"
-
 // Tipos basados en tu backend
 interface SessionContextType {
   balance: bigint;
@@ -11,6 +10,7 @@ interface SessionContextType {
   userPrincipal: string | undefined;
   loading: boolean; 
   minter: Minter | undefined;
+  refreshBalance: () => Promise<void>
   updateProfile: (data: UserEditableData) => Promise<void>;
   loadAvatar: (avatar: Uint8Array) => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -25,17 +25,20 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const { disconnect } = useAuth();
   const { getBackendActor } = useBackend();
   
+  const [minter, setMinter] = useState<Minter | undefined>(undefined)
+
   const [loading, setLoading] = useState(false);
   const [balance, setBalance] = useState(0n);
   const [userPrincipal, setUserPrincipal] = useState<string | undefined>(undefined)
   const [user, setUser ] = useState(null as User | null)
-  const [minter, setMinter] = useState<Minter | undefined>(undefined)
 
   const logout = useCallback(async () => {
     setLoading(true);
     try {
       await disconnect(); 
-      // Limpiamos nuestro estado local sie s necesario
+      setBalance(0n)
+      setUserPrincipal(undefined)
+      setUser(null)
     } catch (e) {
       console.error("Error al cerrar sesión:", e);
     } finally {
@@ -56,14 +59,11 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setLoading(true);
       const backendActor = await getBackendActor()
+      setMinter(backendActor);
       const userBalance = await backendActor.balance()
       const loginResult = await backendActor.login();
-      setMinter(backendActor);
       setUser(loginResult[0] ? loginResult[0]: null);
 
-      // const userSubaccount = await backendActor.getSubaccount();
-      // console.log(userSubaccount.toString())
-      // setUserSubaccount(userSubaccount.toString())
       setUserPrincipal(identity.getPrincipal().toString())
       setBalance(userBalance)      
       
@@ -73,6 +73,32 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(false);
     }
   }, [getBackendActor, identity]);
+
+  //------------- Pulling balance ----------------//
+  
+  const refreshBalance = async () => {
+    if(!minter) { return }
+    try {
+      const newBalance = await minter.balance();
+      setBalance(newBalance);
+    } catch (error) {
+      console.error("Error al refrescar balance:", error);
+    }
+  };
+  // useEffect(() => {
+
+
+  //   refreshBalance();
+
+  //   const intervalId = setInterval(() => {
+  //     refreshBalance();
+  //   }, 10000);
+
+  //   return () => clearInterval(intervalId);
+
+  // }, [minter]);
+
+  //-------------------------------------------------
 
   const redeemCoupon = async (code: bigint) => {
     const backend = await getBackendActor();
@@ -103,7 +129,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [refreshSession]);
 
   return (
-    <SessionContext.Provider value={{ user, userPrincipal, balance, loading, minter, redeemCoupon, refreshSession, updateProfile, loadAvatar, logout }}>
+    <SessionContext.Provider value={{ user, userPrincipal, balance, loading, minter, redeemCoupon, refreshSession, refreshBalance, updateProfile, loadAvatar, logout }}>
       {children}
     </SessionContext.Provider>
   );

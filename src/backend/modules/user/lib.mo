@@ -2,6 +2,9 @@ import Map "mo:map/Map";
 import { phash } "mo:map/Map";
 import Types "types";
 import { now } "mo:core/Time";
+import Array "mo:core/Array";
+import Principal "mo:core/Principal";
+import Iter "mo:core/Iter";
 
 module {
 
@@ -17,8 +20,24 @@ module {
 		};
 		{
 			users = Map.new<Principal, User>();
-			admins = [firstAdmin];
+			var admins = [firstAdmin];
 		};
+	};
+
+	//--------------- Admin functions ----------------------//
+	public func isAdmin(db: UserDB, p: Principal): Bool {
+		Array.filter<User>(db.admins, func u = u.principal == p).size() == 1
+	};
+
+	public func addAdminUser(db: UserDB, p: Principal) : {#Ok; #Err: Text} {
+		let user = switch(Map.get(db.users, phash, p)){
+			case null return #Err("The principal user is not registered.");
+			case (?user) user
+		};
+		if(isAdmin(db, p )){ return #Err("User is already admin")};
+		let updateAdmins = Array.concat(db.admins, [user]);
+		db.admins := updateAdmins;
+		#Ok
 	};
 
 	public func signUp(db : UserDB, caller : Principal, name : Text) : {

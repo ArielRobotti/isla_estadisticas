@@ -25,7 +25,7 @@ module {
 
 	public type UserDB = {
 		users : Map.Map<Principal, User>;
-		admins : [User];
+		var admins : [User];
 	};
 
 	public let baseUser = {

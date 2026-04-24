@@ -6,9 +6,8 @@ import Types "types";
 import Principal "mo:core/Principal";
 import { now } "mo:core/Time";
 import { print } "mo:core/Debug";
-import Array "mo:core/Array";
 import Nat "mo:core/Nat";
-import Random "mo:core/Random";
+import Random "mo:random/Rand";
 import Iter "mo:core/Iter";
 
 shared ({caller = DEPLOYER }) persistent actor class() = This {
@@ -28,7 +27,12 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
 
   let NXST_ledger = Types.ledgerActor("ls35s-zaaaa-aaaap-qumfa-cai");
 
+ //------------------- Objetos no persistentes ----------------------------//
+  transient let rand = Random.Rand(); // Autoreferencial jeje https://mops.one/random
+  rand.setRange(0, 9999999999999);
+
  //--------------------------- Datos persistentes -------------------------//
+
 
   let availableCoupons = Map.new<Nat64, Coupon>();
   let claimedCoupons = Map.new<Nat64, Coupon>();
@@ -65,22 +69,24 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
   };
 
  //--------------------------- Admin functions ---------------------------//
-  public shared ({ caller }) func generateCoupons({qty: Nat; value: Nat }): async [Nat64] {
-    assert (Principal.isController(caller));
-    var i = qty;
-    var arrayCodes: [Nat64] = [];
-    // let firstCode = now();
-    while (i > 0){
-      let rand = await Random.nat64();
-      // let digits: Nat64 = 8;
-      // let baseCode = rand % 10 ** digits;
-      // let code: Nat64 = baseCode + (if(baseCode < 10 ** digits) 10 ** digits else 0);
-      let coupon: Coupon = {id = rand; value; claimed = null};
+  public shared ({ caller }) func generateCoupons({qty: Nat; value: Nat }): async [Nat] {
+    assert (User.isAdmin(userDB, caller));
+    let codes = await rand.randArray(qty);
+    for (code in codes.vals()) {
+      let coupon = {id = Nat.toNat64(code); value; claimed = null};
       ignore Map.put(availableCoupons, n64hash, coupon.id, coupon);
-      arrayCodes := Array.concat(arrayCodes, [rand]);
-      i -= 1;
     };
-    arrayCodes
+    codes
+  };
+
+  public shared ({ caller }) func addAdmin(user: Principal): async {#Ok; #Err: Text} {
+    if (not User.isAdmin(userDB, caller)) return #Err("Caller is not admin");
+    User.addAdminUser(userDB, user);
+  };
+
+  public shared composite query ({ caller }) func getCollectedFees(): async Nat{
+    assert (User.isAdmin(userDB, caller));
+    await NXST_ledger.icrc1_balance_of(FeeCollectorAccount)
   };
 
   public shared ({ caller }) func burnFees(): async {#Ok: Nat; #Err: ICRC2.TransferError} {
@@ -117,6 +123,10 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
 
   public shared query ({ caller }) func login(): async ?User {
     User.login(userDB, caller)
+  };
+
+  public shared ({ caller }) func imAdmin(): async Bool {
+    User.isAdmin(userDB, caller)
   };
 
   public shared ({ caller }) func editProfile(data: User.UserEditableData): async {#Ok: User; #Err: Text}{
@@ -200,9 +210,14 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
     };
   };
 
-  public shared ({ caller }) func getSubaccount(): async Blob {
+  public shared query ({ caller }) func getSubaccount(): async Blob {
     _getUserSubaccount(caller)
   };
+
+  public shared query ({ caller }) func icpAccountId(): async Blob {
+    (Principal.toLedgerAccount(caller, ?_getUserSubaccount(caller)))
+  };
+
 
   public query func getUserName(p: Text): async {#Ok: Text; #Err} {
     User.getUserName(userDB, Principal.fromText(p))

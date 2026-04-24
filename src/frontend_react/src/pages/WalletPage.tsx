@@ -15,11 +15,11 @@ const formatNTX = (amount: bigint | number) => {
 const FEE = 1000000n
 
 const WalletPage = () => {
-	const { userPrincipal, minter, balance, refreshSession } = useSession();
+	const { userPrincipal, minter, balance, refreshSession, refreshBalance } = useSession();
 	const [destination, setDestination] = useState("");
 	const [amount, setAmount] = useState<number>(0);
 	const [available, setAvailable] = useState(Number(balance) / 10 ** 8)
-	const [recipientStatus, setRecipientStatus] = useState<'idle' | 'searching' | 'internal' | 'external' | 'invalid'>('idle');
+	const [recipientStatus, setRecipientStatus] = useState<'idle' | 'searching' | 'internal' | 'external' | 'himself' |'invalid'>('idle');
 	const [recipientName, setRecipientName] = useState<string | null>(null);
 
 	const handleAmountChange = (val: string) => {
@@ -43,12 +43,12 @@ const WalletPage = () => {
 	const handleTransfer = async () => {
 		console.log("Transfiriendo")
 		if (recipientStatus === 'internal') {
-			const sendResponse = await minter?.sendNXST({ to: destination, amount: BigInt(amount * 10 ** 8) })
+			const sendResponse = await minter?.sendNXST({ to: destination, amount: BigInt(Math.floor(amount * 10 ** 8))})
 			refreshSession()
 			setAmount(0)
 			console.log(sendResponse)
 		} else if( recipientStatus === 'external') {
-			const trxResponse = await minter?.withdraw({ to: destination, subaccount: [], amount: BigInt(amount * 10 ** 8) })
+			const trxResponse = await minter?.withdraw({ to: destination, subaccount: [], amount: BigInt(Math.floor(amount * 10 ** 8))})
 			refreshSession()
 			setAmount(0)
 			console.log(trxResponse)
@@ -65,7 +65,15 @@ const WalletPage = () => {
 			try {
 				setRecipientStatus('searching');
 
+				
+				if (userPrincipal?.toString() === destination) {
+					setRecipientStatus('himself');
+					setRecipientName(null);
+					return;
+				};
+
 				const profile = await minter?.getUserName(destination);
+				console.log(profile)
 
 				if (profile && "Ok" in profile) {
 					setRecipientStatus('internal');
@@ -74,18 +82,45 @@ const WalletPage = () => {
 					setRecipientStatus('external');
 					setRecipientName(null);
 				}
-			} catch {
-				setRecipientStatus('invalid');
-			}
-		};
+				} catch (error){
+					console.error("Validation error:", error);
+					setRecipientStatus('invalid');
+					setRecipientName(null);
+				}
+			};
 
 		const timeoutId = setTimeout(validatePrincipal, 1000);
 		return () => clearTimeout(timeoutId);
-	}, [destination, minter]);
+	}, [destination, minter, userPrincipal]);
+
+	useEffect(() => {
+		// 1. Ejecutamos una vez al montar el componente (opcional)
+		refreshBalance();
+		// 2. Configuramos el intervalo (10.000 ms = 10 segundos)
+		const intervalId = setInterval(() => {
+			console.log("Pullinmg balance")
+			refreshBalance();
+		}, 3000);
+
+		// 3. FUNCIÓN DE LIMPIEZA (Crucial)
+		// Esto detiene el ping si el usuario cambia de página o el componente se desmonta
+		return () => clearInterval(intervalId);
+
+		// Agregamos [minter] como dependencia para que el ping se reinicie 
+		// si el objeto minter cambia o se inicializa más tarde.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [minter]);
 
 	useEffect(() => {
 		setAvailable(Number(balance) / 10 ** 8)
 	}, [balance])
+
+	const disabledTransfer = 
+		recipientStatus === 'invalid' 
+		|| destination === userPrincipal
+		|| recipientStatus === 'idle' 
+		|| amount <= 0 
+		|| Number(amount) * 1e8 + Number(FEE) > Number(balance)
 
 	return (
 		<div className="max-w-7xl mx-auto p-6 font-rajdhani text-white">
@@ -127,7 +162,8 @@ const WalletPage = () => {
 								<input
 									type="text"
 									value={destination}
-									onChange={(e) => setDestination(e.target.value)}
+									spellCheck="false"
+									onChange={(e) => setDestination(e.target.value.trim())}
 									placeholder="aaaaa-aa..."
 									className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 transition-all"
 								/>
@@ -151,6 +187,11 @@ const WalletPage = () => {
 										Billetera externa detectada (Withdrawal)
 									</p>
 								)}
+								{recipientStatus ===  'himself' && (
+									<p className="text-xs text-red-400 font-medium italic">No puedes enviarte a ti mismo</p>
+								)
+
+								}
 								{recipientStatus === 'invalid' && (
 									<p className="text-xs text-red-400 font-medium italic">ID de Principal inválido</p>
 								)}
@@ -221,7 +262,7 @@ const WalletPage = () => {
 					</div>
 					<button
 						onClick={handleTransfer}
-						disabled={recipientStatus === 'invalid' || recipientStatus === 'idle' || amount <= 0 || Number(amount) * 1e8 + Number(FEE) > Number(balance)}
+						disabled={disabledTransfer}
 						className="w-full bg-linear-to-r mt-4 from-orange-600 to-amber-500 text-black font-black py-4 rounded-xl hover:scale-[1.02] transition-all disabled:opacity-30 disabled:grayscale"
 					>
 						{recipientStatus === 'internal' ? 'CONFIRMAR TRANSFERENCIA' : 'SOLICITAR WITHDRAW'}

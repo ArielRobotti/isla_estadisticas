@@ -7,7 +7,7 @@ export const QuickRegisterForm = () => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { minter } = useSession()
+  const { minter, refreshSession } = useSession()
 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,6 +18,7 @@ export const QuickRegisterForm = () => {
     try {
       const signUpResult = await minter?.signUp(name);
       console.log({signUpResult})
+      refreshSession()
     } finally {
       setLoading(false);
     }

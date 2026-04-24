@@ -42,9 +42,10 @@ const UserMenu = ({ user }: { user: User | null }) => {
       <ConnectWalletDropdownMenu>
         {({ close }: { close: () => void }) => (
           <>
+          
             <ConnectWalletDropdownMenuButton className="p-0! bg-transparent hover:bg-transparent border-none focus:outline-none">
-              <div className="w-14 h-14 rounded-full bg-linear-to-tr from-inda-blue to-inda-purple p-1 flex-shrink-0">
-                <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden flex items-center justify-center">
+              <div className="w-14 h-14 rounded-full bg-linear-to-tr from-inda-blue to-inda-purple p-1 shrink-0">
+                <div className="w-full h-full rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center">
                   {avatar ? (
                     <img
                       src={avatar}
@@ -53,8 +54,8 @@ const UserMenu = ({ user }: { user: User | null }) => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-2xl font-bold text-white opacity-40 uppercase">
-                        {initials ? <span className="text-zinc-950 font-black text-2xl">{initials}</span> : <User2 className=" w-8 h-8 " />}
+                      <span className="text-2xl font-bold uppercase">
+                        {initials ? <span className="text-zinc-450 font-black text-2xl">{initials}</span> : <User2 className=" w-8 h-8 " />}
                       </span>
                     </div>
                   )}
@@ -70,8 +71,8 @@ const UserMenu = ({ user }: { user: User | null }) => {
                   className="px-4 py-3 flex cursor-pointer hover:bg-white/5 rounded-t-2xl items-center"
                   onClick={() => { navigate("/profile"); close(); }}
                 >
-                  <div className="w-22 h-22 rounded-full bg-linear-to-tr from-inda-blue to-inda-purple p-1 flex-shrink-0">
-                    <div className="w-full h-full rounded-full bg-zinc-900 overflow-hidden flex items-center justify-center">
+                  <div className="w-22 h-22 rounded-full bg-linear-to-tr from-inda-blue to-inda-purple p-1 shrink-0">
+                    <div className="w-full h-full rounded-full bg-zinc-700 overflow-hidden flex items-center justify-center">
                       {avatar ? (
                         <img
                           src={avatar}
@@ -80,8 +81,8 @@ const UserMenu = ({ user }: { user: User | null }) => {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-white opacity-40 uppercase">
-                            {initials ? <span className="text-zinc-950 font-black text-2xl">{initials}</span> : <User2 className=" w-8 h-8 " />}
+                          <span className="text-2xl font-bold text-white uppercase">
+                            {initials ? <span className=" font-black text-4xl">{initials}</span> : <User2 className=" w-8 h-8 " />}
                           </span>
                         </div>
                       )}
