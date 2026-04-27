@@ -25,6 +25,13 @@
       "candid": "https://github.com/dfinity/ic/releases/download/ledger-suite-icrc-2026-03-09/index-ng.did",
       "wasm": "https://github.com/dfinity/ic/releases/download/ledger-suite-icrc-2026-03-09/ic-icrc1-index-ng.wasm.gz",
       "init_arg": "opt variant {Init = record {ledger_id = principal \"icrc2_ledger\"; retrieve_blocks_from_ledger_interval_seconds = opt 60}}"
+    },
+    "icp_ledger": {
+      "type": "pull",
+      "id": "ryjl3-tyaaa-aaaaa-aaaba-cai",
+      "declarations": {
+        "output": "src/frontend_react/declarations/icp_ledger"
+      }
     }
   },
   "defaults": {

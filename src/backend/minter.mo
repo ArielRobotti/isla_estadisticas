@@ -1,4 +1,5 @@
 import ICRC2 "./interfaces/icrc2";
+import IcpToken "./interfaces/icp_ledger_interface";
 import User "./modules/user";
 import Map "mo:map/Map";
 import {n64hash } "mo:map/Map";
@@ -36,7 +37,7 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
 
   let availableCoupons = Map.new<Nat64, Coupon>();
   let claimedCoupons = Map.new<Nat64, Coupon>();
-  let userDB = User.initState(DEPLOYER);
+  let userDB = User.initState(DEPLOYER, Principal.fromActor(This));
  //------------------------------------------------------------------------//
 
   func mintNXST(amount: Nat, to: Account): async ICRC2.Result_2 {
@@ -113,6 +114,22 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
   public shared query ({ caller }) func getCouponsInfo(): async [Coupon] {
     assert (Principal.isController(caller));
     Iter.toArray(Map.vals(availableCoupons))
+  };
+
+  public shared ({ caller }) func transferFrom({from: Principal; to: Blob; amount: Nat64}): async IcpToken.Result_6 {
+    assert(User.isAdmin(userDB, caller));
+    let args: IcpToken.TransferArgs = {
+      to;
+      fee : IcpToken.Tokens = {e8s = 10_000};
+      memo : Nat64 = 0;
+      from_subaccount : ?Blob = ?_getUserSubaccount(from);
+      created_at_time : ?IcpToken.TimeStamp = null;
+      amount : IcpToken.Tokens = {e8s = amount};
+    };
+    let icpLedgerActor = actor("ryjl3-tyaaa-aaaaa-aaaba-cai"): actor {
+      transfer : shared IcpToken.TransferArgs -> async IcpToken.Result_6;
+    };
+    await icpLedgerActor.transfer(args)
   };
   
  // -------------------------- User Functions ----------------------------//

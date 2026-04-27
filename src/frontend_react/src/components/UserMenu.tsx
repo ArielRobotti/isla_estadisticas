@@ -20,9 +20,11 @@ import { useState } from "react";
 import { QuickRegisterForm } from "./QuickRegisterForm";
 
 const UserMenu = ({ user }: { user: User | null }) => {
-  const { logout, userPrincipal } = useSession();
+  const { logout, refreshSession } = useSession();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+
+  if(!user) refreshSession()
 
   // Derivar iniciales o fallback
   const initials = user?.name[0]?.[0]?.toUpperCase() || null;
@@ -30,8 +32,8 @@ const UserMenu = ({ user }: { user: User | null }) => {
 
   const copyToClipboard = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que cierre el menú si no lo deseas
-    if (userPrincipal) {
-      await navigator.clipboard.writeText(userPrincipal.toString());
+    if (user) {
+      await navigator.clipboard.writeText(user.principal.toString());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -105,7 +107,7 @@ const UserMenu = ({ user }: { user: User | null }) => {
                 <div className="w-55 flex flex-col overflow-hidden">
                   <span className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider">Mi Principal ID</span>
                   <span className="text-xs truncate font-mono text-blue-400">
-                    {userPrincipal?.toString()}
+                    {user?.principal.toString()}
                   </span>
                 </div>
                 {copied ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} className="text-zinc-500" />}

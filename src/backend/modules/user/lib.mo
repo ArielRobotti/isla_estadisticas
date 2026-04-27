@@ -4,7 +4,7 @@ import Types "types";
 import { now } "mo:core/Time";
 import Array "mo:core/Array";
 import Principal "mo:core/Principal";
-import Iter "mo:core/Iter";
+// import Iter "mo:core/Iter";
 
 module {
 
@@ -12,16 +12,25 @@ module {
 	public type UserEditableData = Types.UserEditableData;
 	public type UserDB = Types.UserDB;
 
-	public func initState(principal : Principal) : UserDB {
+	public func initState(admin : Principal, canisterID: Principal) : UserDB {
 		let firstAdmin : User = {
 			Types.baseUser with name = ?"Admin Deployer";
-			principal;
+			principal = admin;
+			assignedAccountID = deriveAccountId(canisterID, admin);
 			registrationDate = now();
 		};
-		{
+		{	
 			users = Map.new<Principal, User>();
 			var admins = [firstAdmin];
+			canisterID
 		};
+	};
+	
+	//----------------- Private functions ------------------//
+
+	func deriveAccountId(owner: Principal, subOwner: Principal): Blob {
+		let subaccount = Principal.toLedgerAccount(subOwner, null);
+		Principal.toLedgerAccount(owner, ?subaccount)
 	};
 
 	//--------------- Admin functions ----------------------//
@@ -51,6 +60,7 @@ module {
 			Types.baseUser with
 			name = ?name;
 			principal = caller;
+			assignedAccountID = deriveAccountId(db.canisterID, caller);
 			registrationDate = now();
 		};
 		ignore Map.put(db.users, phash, caller, newUser);
@@ -60,6 +70,7 @@ module {
 	public func login(db : UserDB, caller : Principal) : ?User {
 		Map.get(db.users, phash, caller);
 	};
+
 
 	public func editProfile(db : UserDB, caller : Principal, data : UserEditableData) : {
 		#Ok : User;

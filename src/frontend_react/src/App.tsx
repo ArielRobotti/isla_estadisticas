@@ -15,17 +15,6 @@ import {
 } from './utils/formatters';
 import { Toaster } from 'sonner';
 
-// const getInitialDates = () => {
-//   const now = new Date();
-//   const minus7 = new Date();
-//   minus7.setDate(now.getDate() - 7);
-//   return {
-//     to: now.toISOString().slice(0, 10),
-//     timeTo: now.toTimeString().slice(0, 5),
-//     from: minus7.toISOString().slice(0, 10),
-//     timeFrom: '00:00'
-//   };
-// };
 
 const getInitialDates = () => {
   const now = new Date();

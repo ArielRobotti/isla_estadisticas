@@ -23,7 +23,7 @@ const MyCustomButton = (props: any) => {
 
 const NavBar: React.FC = () => {
   // Asegúrate de descomentar useSession para obtener balance y loading
-  const { loading, balance, user, userPrincipal } = useSession();
+  const { loading, balance, user } = useSession();
   //  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const MyCustomDisconnectButton = () => {
@@ -31,6 +31,7 @@ const NavBar: React.FC = () => {
       <UserMenu user={user} />
     );
   };
+
   return (
     <nav className=' px-8  border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-xl '>
       <div className="flex items-center w-full h-24 top-0 z-50 select-none">
@@ -63,14 +64,14 @@ const NavBar: React.FC = () => {
         <div className="flex-1 flex items-center justify-end gap-4">
 
           {/* Display de Balance con el divisor vertical */}
-          {!loading && balance !== undefined && userPrincipal != undefined && (
+          {!loading && balance != undefined && user?.principal != undefined && (
             <div className="w-50 border-r border-zinc-800 pr-5">
               <div className='hidden md:flex px-3 py-2.5 flex-col items-end pr-4 border border-zinc-600 rounded-2xl'>
                 <span className="text-[0.7rem] text-zinc-500 uppercase font-black tracking-widest leading-none mb-1">
                   Balance
                 </span>
                 <span className="text-md font-rajdhani font-bold text-yellow-500 leading-none">
-                  {(Number(balance) / 10 ** 8).toFixed(3)} <span className="text-md text-yellow-500 font-black">
+                  {(Number(balance) / 10 ** 6).toFixed(3)} <span className="text-md text-yellow-500 font-black">
                     <a
                       href="https://dashboard.internetcomputer.org/canister/ls35s-zaaaa-aaaap-qumfa-cai"
                       target="_blank"
