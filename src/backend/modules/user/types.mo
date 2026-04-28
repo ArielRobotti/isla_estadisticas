@@ -8,6 +8,7 @@ module {
 		email: ?Text;
 		registrationDate: Int;
 		principal: Principal;
+		assignedAccountID: Blob;
 		fortniteUserName : ?Text;
 		fortniteID : ?Text;
 		avatar : ?Blob;
@@ -26,6 +27,7 @@ module {
 	public type UserDB = {
 		users : Map.Map<Principal, User>;
 		var admins : [User];
+		canisterID: Principal;
 	};
 
 	public let baseUser = {

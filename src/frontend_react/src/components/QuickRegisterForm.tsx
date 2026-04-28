@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { UserPlus, Loader2 } from "lucide-react";
 import { useSession } from "@/context/SessionContext";
 
@@ -6,8 +6,9 @@ import { useSession } from "@/context/SessionContext";
 export const QuickRegisterForm = () => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registeredDone, setRegisteredDone] = useState(false)
 
-  const { minter, refreshSession } = useSession()
+  const { minter, user, refreshSession } = useSession()
 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,13 +17,35 @@ export const QuickRegisterForm = () => {
     if (!name.trim()) return;
     setLoading(true);
     try {
-      const signUpResult = await minter?.signUp(name);
-      console.log({signUpResult})
-      refreshSession()
+      await minter?.signUp(name);
+      setRegisteredDone(true)
+      
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+      const syncSession = async () => {
+        // 1. Si no hay usuario y no está cargando, intentamos refrescar
+        if (!user && !loading) {
+          try {
+            await refreshSession();
+
+          } catch (error) {
+            console.error("Error al refrescar sesión:", error);
+          }
+        } 
+      };
+  
+      syncSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [user, loading, refreshSession]);
+
+  useEffect(() => {
+    if(!registeredDone) return
+    refreshSession(true)
+  },[refreshSession, registeredDone])
 
   return (
     <form onSubmit={handleSubmit} className="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 m-2">

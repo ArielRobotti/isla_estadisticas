@@ -14,15 +14,21 @@ import {
   User2,
   Wallet,
   Copy,
-  CheckCircle2
+  CheckCircle2,
+  Award,
+  TrendingUp,
+  Ticket,
+
 } from "lucide-react";
 import { useState } from "react";
 import { QuickRegisterForm } from "./QuickRegisterForm";
 
 const UserMenu = ({ user }: { user: User | null }) => {
-  const { logout, userPrincipal } = useSession();
+  const { logout, isAdmin, refreshSession } = useSession();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);
+
+  if (!user) refreshSession()
 
   // Derivar iniciales o fallback
   const initials = user?.name[0]?.[0]?.toUpperCase() || null;
@@ -30,8 +36,8 @@ const UserMenu = ({ user }: { user: User | null }) => {
 
   const copyToClipboard = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Evitar que cierre el menú si no lo deseas
-    if (userPrincipal) {
-      await navigator.clipboard.writeText(userPrincipal.toString());
+    if (user) {
+      await navigator.clipboard.writeText(user.principal.toString());
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -42,7 +48,7 @@ const UserMenu = ({ user }: { user: User | null }) => {
       <ConnectWalletDropdownMenu>
         {({ close }: { close: () => void }) => (
           <>
-          
+
             <ConnectWalletDropdownMenuButton className="p-0! bg-transparent hover:bg-transparent border-none focus:outline-none">
               <div className="w-14 h-14 rounded-full bg-linear-to-tr from-inda-blue to-inda-purple p-1 shrink-0">
                 <div className="w-full h-full rounded-full bg-zinc-800 overflow-hidden flex items-center justify-center">
@@ -105,7 +111,7 @@ const UserMenu = ({ user }: { user: User | null }) => {
                 <div className="w-55 flex flex-col overflow-hidden">
                   <span className="text-[10px] uppercase text-zinc-500 font-bold tracking-wider">Mi Principal ID</span>
                   <span className="text-xs truncate font-mono text-blue-400">
-                    {userPrincipal?.toString()}
+                    {user?.principal.toString()}
                   </span>
                 </div>
                 {copied ? <CheckCircle2 size={16} className="text-emerald-400" /> : <Copy size={16} className="text-zinc-500" />}
@@ -121,6 +127,37 @@ const UserMenu = ({ user }: { user: User | null }) => {
                 <Wallet size={18} className="text-zinc-400" />
                 <span className="truncate w-60">Billetera</span>
               </ConnectWalletDropdownMenuItem>
+
+              {isAdmin &&
+                <div>
+                  <div className="w-full h-px bg-zinc-800 my-2 text-center text-gray-600"> Admin section</div>
+                  <ConnectWalletDropdownMenuItem
+                    className="px-4 py-2 flex items-center gap-3 cursor-pointer hover:bg-white/5"
+                    onClick={() => { navigate("/metrics"); close(); }}
+                  >
+                    <TrendingUp />
+                    <div className="truncate w-60 flex">
+                      <span className="truncate w-60">Metricas</span>
+                      <Award className="h-5 w-5 text-green-900" />
+                    </div>
+                  </ConnectWalletDropdownMenuItem>
+
+                  <ConnectWalletDropdownMenuItem
+                    className="px-4 py-2 flex items-center gap-3 cursor-pointer hover:bg-white/5"
+                    onClick={() => { navigate("/coupons"); close(); }}
+                  >
+                    <Ticket />
+                    <div className="truncate w-60 flex">
+                      <span className="truncate w-60">Cupones</span>
+                      <Award className="h-5 w-5 text-green-900" />
+                    </div>
+                  </ConnectWalletDropdownMenuItem>
+
+                  <div className="w-full h-px bg-zinc-800 my-2"></div>
+
+                </div>
+              }
+
 
               <ConnectWalletDropdownMenuItem
                 className="px-4 py-2 flex items-center gap-3 cursor-pointer hover:bg-white/5"
