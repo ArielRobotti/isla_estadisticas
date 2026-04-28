@@ -18,9 +18,11 @@ export const useBackend = () => {
         shouldFetchRootKey: !isMainnet,
     });
 
+    console.log(host)
+
     if (!isMainnet) {
       await agent.fetchRootKey().catch((err) => {
-        console.warn("No se pudo obtener la RootKey.", err);
+        console.warn("No se pudo obtener la RootKey. Revise el estado de la replica si esta en local", err);
       });
     }
 

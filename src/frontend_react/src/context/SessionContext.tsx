@@ -10,7 +10,8 @@ interface SessionContextType {
   balance: bigint;
   icpBalance: bigint;
   user: User | null;
-  loading: boolean; 
+  isAdmin: boolean;
+  loading: boolean;
   minter: Minter | undefined;
   refreshBalances: () => Promise<void>
   updateProfile: (data: UserEditableData) => Promise<void>;
@@ -33,6 +34,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [balance, setBalance] = useState(0n);
   const [icpBalance, setIcpBalance] = useState(0n);
   const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // CONTROLADORES DE BUCLE (Síncronos)
   const isProcessing = useRef(false);
@@ -71,48 +73,52 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // 3. refreshSession con escudo de Ref
   const refreshSession = useCallback(async (force = false) => {
-  // 1. Si ya está procesando, rebotamos siempre
-  if (isProcessing.current) return;
-  
-  const isAnonymous = !principalStr || principalStr === "2vxsx-fae";
 
-  if (isAnonymous) {
-    if (lastPrincipal.current !== "anonymous") {
-      setUser(null);
-      setMinter(undefined);
-      setBalance(0n);
-      lastPrincipal.current = "anonymous";
+    if (isProcessing.current) return;
+
+    const isAnonymous = !principalStr || principalStr === "2vxsx-fae";
+
+    if (isAnonymous) {
+      if (lastPrincipal.current !== "anonymous") {
+        setUser(null);
+        setMinter(undefined);
+        setBalance(0n);
+        lastPrincipal.current = "anonymous";
+      }
+      return;
     }
-    return;
-  }
 
-  // 2. Aquí el cambio: Si NO es forzado Y el principal es igual, abortamos.
-  // Pero si force es true, saltamos esta validación.
-  if (!force && principalStr === lastPrincipal.current) return;
+    // Si NO es forzado Y el principal es igual salimos, Pero si force es true, saltamos esta validación y continuamos.
+    if (!force && principalStr === lastPrincipal.current) return;
 
-  try {
-    isProcessing.current = true;
-    console.log(force ? "🔄 Refresco FORZADO iniciado..." : "🚀 Login único iniciado...");
+    try {
+      isProcessing.current = true;
 
-    const backendActor = await getBackendActor();
-    setMinter(backendActor);
+      const backendActor = await getBackendActor();
+      setMinter(backendActor);
 
-    const loginResult = await backendActor.login();
-    const resolveUser = loginResult[0] || null;
-    
-    setUser(resolveUser);
-    lastPrincipal.current = principalStr; // Actualizamos el ref del principal
+      // const [loginResult, isAdmin] = await backendActor.login();
+      const [loginResult, imAdmin] = await Promise.all([
+        backendActor.login(),
+        backendActor.imAdmin()
+      ]);
 
-    if (resolveUser) {
-      await loadInitialData(backendActor, resolveUser);
+      const resolveUser = loginResult[0] || null;
+
+      setUser(resolveUser);
+      setIsAdmin(imAdmin && (resolveUser != null))
+      lastPrincipal.current = principalStr; // Actualizamos el ref del principal
+
+      if (resolveUser) {
+        await loadInitialData(backendActor, resolveUser);
+      }
+    } catch (error) {
+      console.error("❌ Error en refreshSession:", error);
+      lastPrincipal.current = "";
+    } finally {
+      isProcessing.current = false;
     }
-  } catch (error) {
-    console.error("❌ Error en refreshSession:", error);
-    lastPrincipal.current = ""; 
-  } finally {
-    isProcessing.current = false;
-  }
-}, [principalStr, getBackendActor, loadInitialData]);
+  }, [principalStr, getBackendActor, loadInitialData]);
 
   // 4. DISPARADOR DE SESIÓN
   useEffect(() => {
@@ -124,45 +130,45 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Si queres que refreshBalances se ejecute ante cambios de 'user' fuera de login:
   useEffect(() => {
     if (user && minter) {
-        // Solo refrescamos si no estamos en medio de un login (porque refreshSession ya lo hace)
-        if (!isProcessing.current) {
-            refreshBalances();
-        }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.name]); // Solo dependencias específicas, no todo el objeto user
-  
-  
-  //-------------------------------------------------
-  
-    const logout = useCallback(async () => {
-      setLoading(true);
-      try {
-        await disconnect(); 
-        setBalance(0n)
-        setIcpBalance(0n)
-        setUser(null)
-      } catch (e) {
-        console.error("Error al cerrar sesión:", e);
-      } finally {
-        setLoading(false);
+      // Solo refrescamos si no estamos en medio de un login (porque refreshSession ya lo hace)
+      if (!isProcessing.current) {
+        refreshBalances();
       }
-    }, [disconnect]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.name]); // Solo dependencias específicas, no todo el objeto user
+
+
+  //-------------------------------------------------
+
+  const logout = useCallback(async () => {
+    setLoading(true);
+    try {
+      await disconnect();
+      setBalance(0n)
+      setIcpBalance(0n)
+      setUser(null)
+    } catch (e) {
+      console.error("Error al cerrar sesión:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [disconnect]);
 
   const redeemCoupon = async (code: bigint) => {
     const backend = await getBackendActor();
     const result = await backend.redeem_coupon(code);
-    if ("Ok" in result){ refreshBalances() }
+    if ("Ok" in result) { refreshBalances() }
     return ("Ok" in result)
   }
 
   const updateProfile = async (data: UserEditableData) => {
     if (!minter) return
     const response = await minter?.editProfile(data)
-    if("Ok" in response) {
+    if ("Ok" in response) {
       setUser(response.Ok)
     } else {
-      console.log( response )
+      console.log(response)
     }
   }
 
@@ -171,7 +177,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const response = await minter?.loadAvatar([avatar])
     if ("Ok" in response) {
       setUser(response.Ok)
-    }    
+    }
   }
 
   // useEffect(() => {
@@ -179,7 +185,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // }, [refreshSession]);
 
   return (
-    <SessionContext.Provider value={{ user, balance, icpBalance, loading, minter, redeemCoupon, refreshSession, refreshBalances, updateProfile, loadAvatar, logout }}>
+    <SessionContext.Provider value={{ user, isAdmin, balance, icpBalance, loading, minter, redeemCoupon, refreshSession, refreshBalances, updateProfile, loadAvatar, logout }}>
       {children}
     </SessionContext.Provider>
   );

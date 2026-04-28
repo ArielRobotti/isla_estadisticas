@@ -2,16 +2,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from "@/context/SessionContext";
 import { Wallet, Send, ArrowUpRight, Search, CheckCircle2, AlertCircle } from "lucide-react";
 import TokenRow from '@/components/TokenRow';
+import { formatNTX } from "../utils/formatters"
 // import { useIcpLedger } from "../hooks/useIcpLedger"
-
-const formatNTX = (amount: bigint | number) => {
-	const value = typeof amount === 'bigint' ? Number(amount) / 10 ** decimals.NXT : amount;
-
-	return new Intl.NumberFormat('es-AR', {
-		minimumFractionDigits: 2,
-		maximumFractionDigits: 2,
-	}).format(value);
-};
 
 const accountIDToHexString = (arr: Uint8Array): string => {
 	return Array.from(arr).map(e => e.toString(16).padStart(2, '0')).join('');
@@ -346,17 +338,17 @@ const WalletPage = () => {
 							<div className="mt-6 p-4 bg-black/20 rounded-2xl border border-zinc-800 space-y-2">
 								<div className="flex justify-between text-xs">
 									<span className="text-zinc-500">Monto a enviar:</span>
-									<span className="font-mono">{formatNTX(amount)} NTX</span>
+									<span className="font-mono">{formatNTX(amount, 0)} NTX</span>
 								</div>
 								<div className="flex justify-between text-xs">
 									<span className="text-zinc-500">Comisión de red (Fee):</span>
-									<span className="font-mono text-amber-500">{formatNTX(FEE.NXT)} NTX</span>
+									<span className="font-mono text-amber-500">{formatNTX(Number(FEE.NXT), decimals.NXT)} NTX</span>
 								</div>
 								<div className="h-px bg-zinc-800 my-1"></div>
 								<div className="flex justify-between text-sm font-bold">
 									<span className="text-zinc-300">Total a descontar:</span>
 									<span className={`font-mono ${Number(amount) * 1e6 + Number(FEE.NXT) > Number(balance) ? 'text-red-500' : 'text-emerald-400'}`}>
-										{formatNTX(BigInt(Math.round(Number(amount) * 1e6)) + FEE.NXT)} NTX
+										{formatNTX(Math.round(Number(amount) * 1e6 ) + Number(FEE.NXT), decimals.NXT)} NTX
 									</span>
 								</div>
 							</div>

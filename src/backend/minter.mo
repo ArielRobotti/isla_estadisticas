@@ -91,7 +91,7 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
   };
 
   public shared ({ caller }) func burnFees(): async {#Ok: Nat; #Err: ICRC2.TransferError} {
-    assert (Principal.isController(caller));
+    assert (User.isAdmin(userDB, caller));
 
     let fee = await NXST_ledger.icrc1_fee();
     let availableBalance = await NXST_ledger.icrc1_balance_of(FeeCollectorAccount);
@@ -107,12 +107,12 @@ shared ({caller = DEPLOYER }) persistent actor class() = This {
   };
 
   public shared query ({ caller }) func getUserSubaccount(u: Principal): async Blob {
-    assert (Principal.isController(caller));
+    assert (User.isAdmin(userDB, caller));
     _getUserSubaccount(u)
   };
 
   public shared query ({ caller }) func getCouponsInfo(): async [Coupon] {
-    assert (Principal.isController(caller));
+    assert (User.isAdmin(userDB, caller));
     Iter.toArray(Map.vals(availableCoupons))
   };
 

@@ -1,3 +1,12 @@
+export const formatNTX = (amount: number, decimals: number) => {
+	const value = typeof amount === 'bigint' ? amount / 10 ** decimals : amount;
+
+	return new Intl.NumberFormat('es-AR', {
+		minimumFractionDigits: 2,
+		maximumFractionDigits: 2,
+	}).format(value);
+};
+
 export function fmt(n: number | null | undefined): string {
   if (n == null || isNaN(n)) return '—';
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
